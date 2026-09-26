@@ -1,0 +1,81 @@
+{
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "openclaw123"
+    },
+    "port": 18789,
+    "bind": "lan",
+    "tailscale": {
+      "mode": "off"
+    }
+  },
+  "meta": {
+    "migrations": {
+      "modelPolicyAllowlist": true,
+      "utilityModelSeparation": true
+    },
+    "lastTouchedVersion": "2026.9.6"
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "/workspace",
+      "skipBootstrap": true,
+      "model": "openrouter/google/gemini-2.5-flash",
+      "modelPolicy": {
+        "allow": [
+          "openrouter/*",
+          "openai/*",
+          "anthropic/*"
+        ]
+      }
+    },
+    "entries": {
+      "main": {
+        "name": "main",
+        "workspace": "/workspace",
+        "agentDir": "/home/node/.openclaw/agents/main/agent",
+        "identity": {
+          "name": "main"
+        },
+        "model": "openrouter/google/gemini-2.5-flash"
+      }
+    }
+  },
+  "tools": {
+    "profile": "coding"
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "ui": {
+    "prefs": {
+      "locale": "ru"
+    }
+  },
+  "auth": {
+    "profiles": {
+      "openrouter:manual": {
+        "provider": "openrouter",
+        "mode": "api_key"
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "openrouter": {
+        "apiKey": "${OPENROUTER_API_KEY}"
+      }
+    }
+  },
+  "plugins": {
+    "entries": {
+      "openrouter": {
+        "enabled": true
+      }
+    }
+  }
+}

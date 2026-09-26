@@ -1,0 +1,31 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OpenClaw runtime data, state, databases, cache, media, logs
+data/*
+!data/config/
+data/config/*
+!data/config/openclaw.json.starter
+!data/config/openclaw.example.json
+!data/config/.gitkeep
+
+# Docker image tarballs
+*.tar
+*.tar.gz
+
+# OpenClaw logs & dreams
+*.log
+memory/
+DREAMS.md
+
+# Custom profile manager sidecar
+profile_manager/
+
+# Node / OS
+node_modules/
+.DS_Store
+Thumbs.db

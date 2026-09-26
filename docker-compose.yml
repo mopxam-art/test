@@ -1,0 +1,23 @@
+services:
+  openclaw:
+    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    container_name: openclaw_gateway
+    restart: always
+    ports:
+      - "${OPENCLAW_PORT:-18789}:18789"
+    volumes:
+      - ./data/config:/home/node/.openclaw
+    environment:
+      - PORT=${OPENCLAW_PORT:-18789}
+      - OPENCLAW_PORT=${OPENCLAW_PORT:-18789}
+      - OPENCLAW_BIND=${OPENCLAW_BIND:-lan}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    working_dir: /app
+    command: ["openclaw", "gateway", "run", "--port", "18789", "--bind", "lan", "--allow-unconfigured"]
+    networks:
+      - vpn_gateway
+
+networks:
+  vpn_gateway:
+    name: 005_agent_007_custom_net
+    external: true
