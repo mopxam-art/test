@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NGINX Control Center &bull; Safe Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(16, 21, 34, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover: rgba(25, 33, 54, 0.85);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.25);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.25);
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.25);
+      --warning: #f59e0b;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 8px 24px var(--success-glow);
+    }
+
+    .brand h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .token-input-group {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 6px 12px;
+      gap: 8px;
+    }
+
+    .token-input-group input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      width: 130px;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border-color: rgba(59, 130, 246, 0.4);
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    }
+
+    /* Grid & Cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .status-active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-inactive {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .dot.pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Master Switch Card */
+    .master-card {
+      background: linear-gradient(135deg, rgba(20, 30, 55, 0.85), rgba(13, 20, 38, 0.9));
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 28px 32px;
+    }
+
+    .master-info h2 {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .master-info p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .switch-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Switch Toggle */
+    .switch-btn {
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .switch-btn.on {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 6px 20px var(--success-glow);
+    }
+
+    .switch-btn.off {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      box-shadow: 0 6px 20px var(--danger-glow);
+    }
+
+    .switch-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    .switch-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Sites Table / List */
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .site-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .site-card:hover {
+      background: var(--card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .site-card.special {
+      border-color: rgba(59, 130, 246, 0.35);
+      background: rgba(30, 41, 69, 0.4);
+    }
+
+    .site-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .site-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .site-category {
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .site-domains {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .site-domain-tag {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 8px;
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .site-target {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Terminal / Log Output Drawer */
+    .terminal-card {
+      margin-top: 28px;
+      background: #05070b;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .terminal-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-body {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #94a3b8;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 16px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <h1>NGINX Control Center</h1>
+          <p>Безопасный пульт управления сервером Server2</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="token-input-group" title="Токен безопасности для выполнения действий">
+          <span style="font-size: 12px; color: var(--text-muted);">🔑 Токен:</span>
+          <input type="password" id="authTokenInput" value="openclaw123" placeholder="Токен">
+        </div>
+        <button class="btn" id="btnCheckSyntax" onclick="checkSyntax()">
+          <span>🔍 Проверить синтаксис</span>
+        </button>
+        <button class="btn btn-primary" id="btnReload" onclick="reloadNginx()">
+          <span>🔄 Перезагрузить NGINX</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Master Control for OpenClaw -->
+    <div class="card master-card">
+      <div class="master-info">
+        <h2>
+          <span>🤖 OpenClaw Gateway</span>
+          <span id="openclawBadge" class="status-badge status-active">
+            <span class="dot pulse"></span>
+            <span id="openclawBadgeText">ВКЛЮЧЕН</span>
+          </span>
+        </h2>
+        <p>Управление маршрутизацией запросов с домена <b>oc.fond-hub.ru</b> на OpenClaw</p>
+        <div style="margin-top: 10px; display: flex; gap: 12px; font-size: 13px; color: #94a3b8;">
+          <span>📦 Docker: <b id="dockerStatusText" style="color: #fff;">checking...</b></span>
+          <span>🔒 Режим: <b>100% безопасный</b> (не затрагивает другие сайты)</span>
+        </div>
+      </div>
+      <div class="switch-group">
+        <button id="toggleBtn" class="switch-btn on" onclick="toggleOpenClaw()">
+          <span id="toggleIcon">✓</span>
+          <span id="toggleText">OpenClaw Работает (Нажмите для отключения)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">
+          <span>Служба NGINX</span>
+          <span id="nginxStatusBadge" class="status-badge status-active">
+            <span class="dot pulse"></span> active
+          </span>
+        </div>
+        <div style="font-size: 26px; font-weight: 800; margin-bottom: 6px;" id="nginxPidText">PID: ...</div>
+        <div style="font-size: 13px; color: var(--text-muted);">Системная служба systemd (Linux host)</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Целостность Конфигурации</span>
+          <span id="syntaxBadge" class="status-badge status-active">OK</span>
+        </div>
+        <div style="font-size: 20px; font-weight: 700; margin-bottom: 6px; color: #34d399;" id="syntaxTitle">Синтаксис корректен</div>
+        <div style="font-size: 13px; color: var(--text-muted);">nginx -t выполняется без ошибок</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Всего Сайтов</span>
+          <span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">Активно</span>
+        </div>
+        <div style="font-size: 26px; font-weight: 800; margin-bottom: 6px;" id="sitesCountText">...</div>
+        <div style="font-size: 13px; color: var(--text-muted);">В папке /etc/nginx/sites-available</div>
+      </div>
+    </div>
+
+    <!-- Sites List -->
+    <div class="section-title">
+      <span>🌐 Все сайты на этом сервере</span>
+    </div>
+    <div class="sites-grid" id="sitesContainer">
+      <!-- Dynamic list -->
+    </div>
+
+    <!-- Terminal Output -->
+    <div class="terminal-card">
+      <div class="terminal-header">
+        <span class="terminal-title">🖥️ Лог последней системной операции:</span>
+        <span style="font-size: 11px; color: var(--text-muted);" id="logTime">Готово</span>
+      </div>
+      <div class="terminal-body" id="terminalOutput">Ожидание команд...</div>
+    </div>
+  </div>
+
+  <div id="toast">Уведомление</div>
+
+  <script>
+    let currentData = null;
+
+    function getAuthToken() {
+      return document.getElementById('authTokenInput').value.trim();
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.borderColor = isError ? 'rgba(239, 68, 68, 0.5)' : 'rgba(16, 185, 129, 0.5)';
+      toast.style.background = isError ? '#450a0a' : '#064e3b';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    const BASE_PATH = window.location.pathname.replace(/\/+$/, '') + '/';
+
+    async function loadStatus() {
+      try {
+        const res = await fetch(BASE_PATH + 'api/status');
+        const data = await res.json();
+        currentData = data;
+        renderDashboard(data);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderDashboard(data) {
+      // Nginx stats
+      document.getElementById('nginxPidText').textContent = 'PID: ' + (data.nginx_pid || 'Active');
+      document.getElementById('sitesCountText').textContent = (data.sites || []).length + ' сайтов';
+
+      // OpenClaw Master
+      const isOC = data.openclaw_nginx_enabled;
+      const ocBadge = document.getElementById('openclawBadge');
+      const ocBadgeText = document.getElementById('openclawBadgeText');
+      const toggleBtn = document.getElementById('toggleBtn');
+      const toggleText = document.getElementById('toggleText');
+      const toggleIcon = document.getElementById('toggleIcon');
+      const dockerText = document.getElementById('dockerStatusText');
+
+      dockerText.textContent = data.openclaw_container || 'stopped';
+      dockerText.style.color = (data.openclaw_container === 'running') ? '#34d399' : '#f87171';
+
+      if (isOC) {
+        ocBadge.className = 'status-badge status-active';
+        ocBadgeText.textContent = 'ВКЛЮЧЕН В NGINX';
+        toggleBtn.className = 'switch-btn on';
+        toggleIcon.textContent = '✓';
+        toggleText.textContent = 'OpenClaw Работает (Нажмите для отключения)';
+      } else {
+        ocBadge.className = 'status-badge status-inactive';
+        ocBadgeText.textContent = 'ОТКЛЮЧЕН';
+        toggleBtn.className = 'switch-btn off';
+        toggleIcon.textContent = '✕';
+        toggleText.textContent = 'OpenClaw Выключен (Нажмите для включения)';
+      }
+
+      // Syntax
+      const synBadge = document.getElementById('syntaxBadge');
+      const synTitle = document.getElementById('syntaxTitle');
+      if (data.syntax_ok) {
+        synBadge.className = 'status-badge status-active';
+        synBadge.textContent = 'OK';
+        synTitle.textContent = 'Синтаксис корректен';
+        synTitle.style.color = '#34d399';
+      } else {
+        synBadge.className = 'status-badge status-inactive';
+        synBadge.textContent = 'Ошибка';
+        synTitle.textContent = 'Ошибка в конфиге!';
+        synTitle.style.color = '#f87171';
+      }
+
+      // Sites list
+      const container = document.getElementById('sitesContainer');
+      container.innerHTML = '';
+
+      (data.sites || []).forEach(site => {
+        const isSpecial = site.id === 'openclaw';
+        const card = document.createElement('div');
+        card.className = 'site-card' + (isSpecial ? ' special' : '');
+
+        let domainTags = site.server_names.map(d => `<span class="site-domain-tag">${d}</span>`).join(' ');
+        if (!domainTags) domainTags = `<span class="site-domain-tag" style="color:#64748b;">(default)</span>`;
+
+        let targets = site.proxy_passes.map(p => `<span>➜ ${p}</span>`).join('<br>');
+        if (!targets) targets = `<span>Внутренний сайт</span>`;
+
+        const badgeHtml = site.is_enabled
+          ? `<span class="status-badge status-active"><span class="dot pulse"></span> Активен</span>`
+          : `<span class="status-badge status-inactive">Отключен</span>`;
+
+        let actionHtml = '';
+        if (site.can_toggle) {
+          actionHtml = `<div style="font-size: 12px; color: #60a5fa; font-weight: 600; margin-top: 8px;">★ Управляется мастер-переключателем выше</div>`;
+        } else {
+          actionHtml = `<div style="font-size: 11px; color: #64748b; margin-top: 8px;">🔒 Защищен от случайных изменений</div>`;
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="site-header">
+              <div>
+                <div class="site-title">${site.id}</div>
+                <div class="site-category">${site.category}</div>
+              </div>
+              ${badgeHtml}
+            </div>
+            <div style="margin-top: 12px;" class="site-domains">
+              ${domainTags}
+            </div>
+          </div>
+          <div>
+            <div class="site-target">
+              ${targets}
+            </div>
+            ${actionHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function toggleOpenClaw() {
+      const token = getAuthToken();
+      const btn = document.getElementById('toggleBtn');
+      btn.style.opacity = '0.6';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(BASE_PATH + 'api/openclaw/toggle', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ action: 'toggle' })
+        });
+        const data = await res.json();
+        if (data.error) {
+          showToast(data.error, true);
+          document.getElementById('terminalOutput').textContent = data.error;
+        } else {
+          showToast(data.message);
+          document.getElementById('terminalOutput').textContent = data.message;
+        }
+      } catch (e) {
+        showToast('Ошибка сети: ' + e.message, true);
+      } finally {
+        btn.style.opacity = '1';
+        btn.disabled = false;
+        await loadStatus();
+      }
+    }
+
+    async function checkSyntax() {
+      const term = document.getElementById('terminalOutput');
+      term.textContent = 'Выполняю проверку синтаксиса nginx -t...';
+      try {
+        const res = await fetch(BASE_PATH + 'api/nginx/test', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAuthToken()
+          }
+        });
+        const data = await res.json();
+        term.textContent = data.output || 'OK';
+        document.getElementById('logTime').textContent = new Date().toLocaleTimeString();
+        showToast('Проверка завершена');
+      } catch (e) {
+        term.textContent = 'Ошибка: ' + e.message;
+        showToast('Ошибка проверки', true);
+      }
+      await loadStatus();
+    }
+
+    async function reloadNginx() {
+      if (!confirm('Перезагрузить NGINX? Это безопасно перезагрузит конфигурацию без остановки трафика.')) return;
+      const term = document.getElementById('terminalOutput');
+      term.textContent = 'Перезагружаю NGINX...';
+      try {
+        const res = await fetch(BASE_PATH + 'api/nginx/reload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAuthToken()
+          }
+        });
+        const data = await res.json();
+        if (data.error) {
+          term.textContent = 'ОШИБКА: ' + data.error;
+          showToast(data.error, true);
+        } else {
+          term.textContent = data.message || 'NGINX перезагружен успешно';
+          showToast(data.message);
+        }
+        document.getElementById('logTime').textContent = new Date().toLocaleTimeString();
+      } catch (e) {
+        term.textContent = 'Ошибка: ' + e.message;
+        showToast('Ошибка перезагрузки', true);
+      }
+      await loadStatus();
+    }
+
+    // Auto-refresh every 10 seconds
+    loadStatus();
+    setInterval(loadStatus, 10000);
+  </script>
+</body>
+</html>
